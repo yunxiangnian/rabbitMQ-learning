@@ -24,6 +24,9 @@ public class TtlQueueConfig {
     /**死信队列*/
     private static final String DEAD_LETTER_QUEUE = "QD";
 
+    /**新的普通队列*/
+    private static final String QUEUE_C ="QC";
+
 
     /**声明XExchange  别名*/
     @Bean("xExchange")
@@ -64,6 +67,19 @@ public class TtlQueueConfig {
 
         return QueueBuilder.durable(QUEUE_B).withArguments(map).build();
     }
+    /**声明queueC
+     * 用来存放发送者自定义的延迟队列 因此取消定义队列过期时间
+     * */
+    @Bean("queueC")
+    public Queue queueC(){
+        HashMap<String, Object> map = new HashMap<>(4);
+        /**设置死信队列的交换机*/
+        map.put("x-dead-letter-exchange", Y_DEAD_LETTER_EXCHANGE);
+        /**设置死信队列的routingKey*/
+        map.put("x-dead-letter-routing-key", "YD");
+
+        return QueueBuilder.durable(QUEUE_C).withArguments(map).build();
+    }
 
     /**声明死信队列*/
     @Bean("queueD")
@@ -84,6 +100,13 @@ public class TtlQueueConfig {
                                   @Qualifier("xExchange") Exchange xExchange){
         return BindingBuilder.bind(queueB).to(xExchange).with("XB").noargs();
     }
+
+    @Bean
+    public Binding queueCBindingY(@Qualifier("queueC") Queue queueC,
+                                  @Qualifier("xExchange") Exchange xExchange){
+        return BindingBuilder.bind(queueC).to(xExchange).with("XC").noargs();
+    }
+
     @Bean
     public Binding queueDBindingY(@Qualifier("queueD") Queue queueD,
                                   @Qualifier("yExchange") Exchange yExchange){
